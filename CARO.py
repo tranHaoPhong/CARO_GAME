@@ -2,20 +2,24 @@ import tkinter as tk
 from tkinter import messagebox
 import Engine
 
-SIZE = 16
+SIZE = 18
 BOARD_DATA = Engine.make_empty_board(SIZE)
 
 class CaroGame:
     def __init__(self, root, board_size=SIZE):
         self.root = root
-        self.root.title("Caro Game")
+        self.root.title("Caro Game by PHONGS")
         self.board_size = board_size
         self.board = [['' for _ in range(board_size)] for _ in range(board_size)]
-        self.current_player = 'O'
+        self.CPU = 'X'
+        self.YOU = 'O'
+        self.current_player = self.YOU
         self.play_with_cpu = True
         self.buttons = []
         self.winning_cells = set()
         self.create_widgets()
+        if self.play_with_cpu and self.current_player == self.CPU:
+            self.cpu_move()
 
     def create_widgets(self):
         frame = tk.Frame(self.root)
@@ -27,12 +31,12 @@ class CaroGame:
         self.options_menu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="Options", menu=self.options_menu)
         self.menu.add_command(label="Reset", command=self.reset_game)
+        self.menu.add_command(label="Hint", command=self.hint)
         self.menu.add_command(label="Info", command=self.info)
 
         self.options_menu.add_command(label="Play with CPU", command=lambda: self.set_mode(True))
         self.options_menu.add_command(label="Play with Human", command=lambda: self.set_mode(False))
         
-
         for i in range(self.board_size):
             row = []
             for j in range(self.board_size):
@@ -41,14 +45,18 @@ class CaroGame:
                 row.append(button)
             self.buttons.append(row)
     
+    def hint(self):
+        m,n = Engine.best_move(BOARD_DATA, 'b')
+        self.buttons[m][n].config(bg='silver')
+    
     def info(self):
-        messagebox.showinfo("Info", "Author: Tran Hao Phong")
+        messagebox.showinfo("Info", "Author: Tran Hao Phong\nVersion: 0.0.7")
 
     def create_button(self, frame, i, j):
-        return tk.Button(frame, width=3, height=1, font=('Helvetica', '17'), command=lambda: self.click(i, j))
+        return tk.Button(frame, width=3, height=1, font=('Forte', '17'), command=lambda: self.click(i, j))
 
-    def set_mode(self, play_with_cpu):
-        self.play_with_cpu = play_with_cpu
+    def set_mode(self, bool):
+        self.play_with_cpu = bool
         self.reset_game()
 
     def click(self, i, j):
@@ -61,13 +69,13 @@ class CaroGame:
                 self.reset_game()
             else:
                 self.switch_player()
-                if self.play_with_cpu and self.current_player == 'X':
+                if self.play_with_cpu and self.current_player == self.CPU:
                     self.cpu_move()
 
     def update_button(self, i, j):
         self.clear_highlight()
         self.buttons[i][j].config(bg='yellow', text=self.current_player, fg='blue' if self.current_player == 'O' else 'red')
-        if self.current_player == 'X':
+        if self.current_player == self.CPU:
             BOARD_DATA[i][j]='b'
         else:
             BOARD_DATA[i][j]='w'
@@ -119,7 +127,7 @@ class CaroGame:
         BOARD_DATA = Engine.make_empty_board(SIZE)
         self.clear_highlight()
         self.board = [['' for _ in range(self.board_size)] for _ in range(self.board_size)]
-        self.current_player = 'O'
+        self.current_player = self.YOU
         self.winning_cells.clear()
         for row in self.buttons:
             for button in row:
